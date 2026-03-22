@@ -1,0 +1,1128 @@
+import { useState, useEffect, useRef } from “react”;
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+const G = {
+black:   “#080808”,
+dark:    “#0f0f0f”,
+card:    “#141414”,
+card2:   “#1a1a1a”,
+border:  “#222”,
+lime:    “#aaff00”,
+limeD:   “#7acc00”,
+limeDim: “rgba(170,255,0,0.12)”,
+limeGlow:“rgba(170,255,0,0.25)”,
+white:   “#f0f0f0”,
+grey:    “#666”,
+greyL:   “#999”,
+greyD:   “#2a2a2a”,
+red:     “#ff3b3b”,
+orange:  “#ff8c00”,
+gold:    “#ffd000”,
+blue:    “#38bdf8”,
+green:   “#22c55e”,
+};
+
+(() => {
+if (document.getElementById(“gfdt-css”)) return;
+const el = document.createElement(“style”);
+el.id = “gfdt-css”;
+el.textContent = `@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,700&family=Barlow:wght@300;400;500&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} html,body{background:#080808;color:#f0f0f0;font-family:'Barlow',sans-serif;-webkit-font-smoothing:antialiased;} ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:#aaff00;border-radius:2px;} @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}} @keyframes scalePop{from{opacity:0;transform:scale(0.7);}to{opacity:1;transform:scale(1);}} @keyframes crownBob{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-5px) rotate(4deg);}} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}} .btn-lime{background:#aaff00;color:#080808;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;border-radius:8px;} .btn-lime:hover{background:#c8ff40;transform:translateY(-1px);box-shadow:0 4px 24px rgba(170,255,0,.4);} .btn-ghost{background:transparent;color:#f0f0f0;border:1px solid #2a2a2a;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .2s;border-radius:8px;} .btn-ghost:hover{border-color:#aaff00;color:#aaff00;} .card-h{transition:all .25s;cursor:pointer;} .card-h:hover{background:#1a1a1a!important;border-color:#aaff00!important;transform:translateY(-2px);} .tab-pill{cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;border:none;} .nav-btn{background:none;border:none;cursor:pointer;transition:all .2s;} .lb-row{transition:background .2s;} .lb-row:hover{background:rgba(170,255,0,.05)!important;} input{background:#1a1a1a;border:1px solid #2a2a2a;color:#f0f0f0;font-family:'Barlow',sans-serif;transition:border .2s;} input:focus{outline:none;border-color:#aaff00;}`;
+document.head.appendChild(el);
+})();
+
+// ── SVG ICON LIBRARY ──────────────────────────────────────────────────────────
+const I = {
+dumbbell:   (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="6" width="2" height="12" rx="1"/><rect x="16" y="6" width="2" height="12" rx="1"/><line x1="8" y1="12" x2="16" y2="12" strokeWidth={2.2}/><line x1="2.5" y1="9.5" x2="6" y2="9.5" strokeWidth={2}/><line x1="2.5" y1="14.5" x2="6" y2="14.5" strokeWidth={2}/><line x1="18" y1="9.5" x2="21.5" y2="9.5" strokeWidth={2}/><line x1="18" y1="14.5" x2="21.5" y2="14.5" strokeWidth={2}/></svg>,
+leaf:       (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.5 2 5.5 5.2 5.5 9c0 2.9 1.6 5.4 4 6.7V20a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-4.3c2.4-1.3 4-3.8 4-6.7C18.5 5.2 15.5 2 12 2z"/><line x1="12" y1="2" x2="12" y2="10"/><line x1="8.5" y1="6" x2="15.5" y2="6"/></svg>,
+figure:     (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="5" r="1.6" fill={c} stroke="none"/><path d="M7 9l1.5 3.5 3-2.5 2 5"/><path d="M9 9c1.2-.5 2-1 2.3-2l.9-1.4 2.3 1.4-1.4 3.2"/><line x1="8.5" y1="16.5" x2="7" y2="21"/><line x1="13" y1="16" x2="14.5" y2="21"/><line x1="3" y1="21" x2="20" y2="21" strokeWidth={1.2}/></svg>,
+trendUp:    (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 17 8.5 10.5 13.5 13.5 21 5"/><line x1="3" y1="21" x2="21" y2="21" strokeWidth={1.3}/><line x1="3" y1="17" x2="3" y2="21"/></svg>,
+podium:     (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="4" width="6" height="17" rx="1"/><rect x="2" y="9" width="6" height="12" rx="1"/><rect x="16" y="7" width="6" height="14" rx="1"/></svg>,
+person:     (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><line x1="17" y1="8" x2="21" y2="8"/><line x1="17" y1="12" x2="21" y2="12"/><line x1="17" y1="16" x2="19" y2="16"/></svg>,
+flame:      (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c0 0-6 5-6 11a6 6 0 0 0 12 0c0-3-2-6-2-6s0 4-2 5c0 0-1-3-2-4 0 0 0 3-1 4-1-2-1-5 1-10z"/></svg>,
+star:       (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+trophy:     (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12v8a6 6 0 0 1-12 0V2z"/><path d="M6 5H3a2 2 0 0 0 0 4h3"/><path d="M18 5h3a2 2 0 0 0 0 4h-3"/><line x1="12" y1="16" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg>,
+medal:      (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="15" r="6"/><polyline points="8.56 2.75 4.5 3.5 5.25 7.5"/><polyline points="15.44 2.75 19.5 3.5 18.75 7.5"/><path d="M5.25 7.5L12 9l6.75-1.5"/></svg>,
+check:      (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+play:       (c,s=13)=><svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><polygon points="5,3 19,12 5,21"/></svg>,
+close:      (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.2} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+chevron:    (c,s=18,rot=0)=><svg width={s} height={s} viewBox=“0 0 24 24” fill=“none” stroke={c} strokeWidth={2} strokeLinecap=“round” style={{transform:`rotate(${rot}deg)`,transition:“transform .2s”,display:“block”}}><polyline points="9 18 15 12 9 6"/></svg>,
+lock:       (c,s=32)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+bolt:       (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+target:     (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+timer:      (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15"/><path d="M9 3h6"/><path d="M12 3v2"/></svg>,
+notepad:    (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>,
+video:      (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>,
+arrowUp:    (c,s=11)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.5} strokeLinecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>,
+arrowDown:  (c,s=11)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.5} strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>,
+dash:       (c,s=11)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.5} strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+crown:      (c,s=20)=><svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><path d="M2 19h20l-3-10-5 5-2-8-2 8-5-5z"/><rect x="2" y="19" width="20" height="2" rx="1"/></svg>,
+plus:       (c,s=13)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2.5} strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+swords:     (c,s=20)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/></svg>,
+sparkle:    (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>,
+barbell2:   (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><rect x="2" y="9" width="4" height="6" rx="1"/><rect x="18" y="9" width="4" height="6" rx="1"/><rect x="6" y="10.5" width="3" height="3" rx=".5"/><rect x="15" y="10.5" width="3" height="3" rx=".5"/></svg>,
+shieldCheck:(c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 10C7.5 20 4 16 4 11V5z"/><polyline points="9 12 11 14 15 10"/></svg>,
+walk:       (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="4" r="1.6" fill={c} stroke="none"/><path d="M7 8.5l1.5 3.5 3-2.5 2 5"/><path d="M9 8.5c1.2-.5 2-1 2.3-2l.9-1.4 2.3 1.4-1.4 3.2"/><line x1="7.5" y1="16" x2="6" y2="21"/><line x1="12.5" y1="15.5" x2="14" y2="21"/></svg>,
+mapPin:     (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+calIcon:    (c,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+addUser:    (c,s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>,
+bell:       (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+rocket:     (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>,
+wrench:     (c,s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
+};
+
+// ── NAV ICONS (component style for size/color props) ──────────────────────────
+const NavIcons = {
+dashboard:   ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
+workout:     ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="6" width="2" height="12" rx="1"/><rect x="16" y="6" width="2" height="12" rx="1"/><line x1="8" y1="12" x2="16" y2="12" strokeWidth={2}/><line x1="2.5" y1="9.5" x2="6" y2="9.5" strokeWidth={2}/><line x1="2.5" y1="14.5" x2="6" y2="14.5" strokeWidth={2}/><line x1="18" y1="9.5" x2="21.5" y2="9.5" strokeWidth={2}/><line x1="18" y1="14.5" x2="21.5" y2="14.5" strokeWidth={2}/></svg>,
+nutrition:   ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.5 2 5.5 5.2 5.5 9c0 2.9 1.6 5.4 4 6.7V20a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-4.3c2.4-1.3 4-3.8 4-6.7C18.5 5.2 15.5 2 12 2z"/><line x1="12" y1="2" x2="12" y2="10"/><line x1="8.5" y1="6" x2="15.5" y2="6"/></svg>,
+activity:    ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4" r="1.8" fill={color} stroke="none"/><path d="M8 8.5l2 4 2.5-2.5 2 4.5"/><path d="M10.5 8C11.5 7 12.5 6 13 5l2 1.5-1.5 3.5"/><line x1="9.5" y1="16.5" x2="7.5" y2="20.5"/><line x1="13" y1="16" x2="15" y2="20.5"/><line x1="4" y1="21" x2="20" y2="21" strokeWidth={1.4}/></svg>,
+progress:    ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 17 8.5 10.5 13.5 13.5 21 5"/><line x1="3" y1="21" x2="21" y2="21" strokeWidth={1.4}/><line x1="3" y1="17" x2="3" y2="21"/></svg>,
+leaderboard: ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="4" width="6" height="17" rx="1"/><rect x="2" y="9" width="6" height="12" rx="1"/><rect x="16" y="7" width="6" height="14" rx="1"/></svg>,
+coaching:    ({color,size=22})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><line x1="17" y1="8" x2="21" y2="8"/><line x1="17" y1="12" x2="21" y2="12"/><line x1="17" y1="16" x2="19" y2="16"/></svg>,
+};
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const GOALS = { calDay: 2400, stepsDay: 10000, milesDay: 5 };
+
+const CAL_DATA = {
+daily:   { labels:[“MON”,“TUE”,“WED”,“THU”,“FRI”,“SAT”,“SUN”], consumed:[1980,2250,1840,2400,2100,2580,2200], burned:[420,380,510,460,310,620,440] },
+weekly:  { labels:[“WK1”,“WK2”,“WK3”,“WK4”], consumed:[14200,15800,13600,15200], burned:[2900,3200,2700,3100] },
+monthly: { labels:[“OCT”,“NOV”,“DEC”,“JAN”,“FEB”,“MAR”], consumed:[58000,61500,55000,63000,59500,62000], burned:[11200,12800,10600,13200,12100,13000] },
+yearly:  { labels:[“2021”,“2022”,“2023”,“2024”,“2025”,“2026”], consumed:[710000,695000,732000,718000,729000,184000], burned:[133000,140000,137000,151000,148000,44200] },
+};
+
+const ACT_DATA = {
+daily:   { labels:[“MON”,“TUE”,“WED”,“THU”,“FRI”,“SAT”,“SUN”], steps:[7200,9800,6400,11200,8300,14200,10100], miles:[3.1,4.3,2.8,4.9,3.6,6.2,4.4] },
+weekly:  { labels:[“WK1”,“WK2”,“WK3”,“WK4”], steps:[58000,71000,63000,68500], miles:[25.2,31.0,27.5,29.8] },
+monthly: { labels:[“OCT”,“NOV”,“DEC”,“JAN”,“FEB”,“MAR”], steps:[248000,261000,232000,276000,259000,268000], miles:[108,114,101,120,113,116] },
+yearly:  { labels:[“2021”,“2022”,“2023”,“2024”,“2025”,“2026”], steps:[2900000,3100000,2850000,3250000,3180000,980000], miles:[1265,1352,1243,1418,1387,427] },
+};
+
+const FOOD_DB = [
+{name:“Chicken Breast (100g)”, cal:165,protein:31,carbs:0,  fat:3.6},
+{name:“Brown Rice (100g)”,     cal:123,protein:2.7,carbs:26, fat:0.9},
+{name:“Eggs (1 large)”,        cal:78, protein:6,  carbs:0.6,fat:5.3},
+{name:“Oats (100g dry)”,       cal:379,protein:13, carbs:67, fat:6.9},
+{name:“Broccoli (100g)”,       cal:34, protein:2.8,carbs:7,  fat:0.4},
+{name:“Salmon (100g)”,         cal:208,protein:20, carbs:0,  fat:13},
+{name:“Sweet Potato (100g)”,   cal:86, protein:1.6,carbs:20, fat:0.1},
+{name:“Whey Protein (1 scoop)”,cal:120,protein:25, carbs:3,  fat:1.5},
+{name:“Banana (medium)”,       cal:89, protein:1.1,carbs:23, fat:0.3},
+{name:“Almonds (30g)”,         cal:174,protein:6,  carbs:6,  fat:15},
+{name:“Greek Yogurt (150g)”,   cal:89, protein:15, carbs:5,  fat:0.5},
+{name:“Avocado (half)”,        cal:120,protein:1.5,carbs:6,  fat:11},
+];
+
+const FRIENDS = [
+{rank:1,name:“You”,       score:87,streak:12,workouts:18,tier:“Elite”,  change:0, isMe:true},
+{rank:2,name:“Jordan K.”, score:84,streak:9, workouts:16,tier:“Elite”,  change:1, isMe:false},
+{rank:3,name:“Marcus T.”, score:79,streak:21,workouts:14,tier:“Pro”,    change:-1,isMe:false},
+{rank:4,name:“Sofia R.”,  score:72,streak:5, workouts:12,tier:“Pro”,    change:2, isMe:false},
+{rank:5,name:“Derek W.”,  score:68,streak:7, workouts:11,tier:“Standard”,change:0,isMe:false},
+{rank:6,name:“Priya S.”,  score:61,streak:3, workouts:9, tier:“Standard”,change:-2,isMe:false},
+{rank:7,name:“Tyler B.”,  score:54,streak:2, workouts:7, tier:“Standard”,change:1,isMe:false},
+];
+const GLOBAL = [
+{rank:1, name:“Beast_Mode_99”,score:99,streak:88,workouts:28,tier:“Elite”},
+{rank:2, name:“IronWill”,     score:97,streak:63,workouts:27,tier:“Elite”},
+{rank:3, name:“GrindDaily”,   score:95,streak:45,workouts:26,tier:“Elite”},
+{rank:4, name:“LiftOrDie”,    score:93,streak:39,workouts:25,tier:“Elite”},
+{rank:5, name:“AlphaGains”,   score:91,streak:30,workouts:24,tier:“Elite”},
+{rank:6, name:“NoExcuses”,    score:89,streak:27,workouts:23,tier:“Elite”},
+{rank:7, name:“You”,          score:87,streak:12,workouts:18,tier:“Elite”,isMe:true},
+{rank:8, name:“SteelMind”,    score:85,streak:18,workouts:22,tier:“Elite”},
+{rank:9, name:“ChainBreaker”, score:82,streak:15,workouts:20,tier:“Pro”},
+{rank:10,name:“Jordan K.”,    score:79,streak:9, workouts:16,tier:“Pro”},
+];
+const MUSCLES = [
+{id:“chest”,    label:“CHEST”,  color:G.lime},
+{id:“back”,     label:“BACK”,   color:G.limeD},
+{id:“legs”,     label:“LEGS”,   color:”#88dd00”},
+{id:“shoulders”,label:“DELTS”,  color:”#ccff44”},
+{id:“arms”,     label:“ARMS”,   color:G.gold},
+{id:“core”,     label:“CORE”,   color:G.orange},
+];
+const MUSCLE_SCORES = {chest:78,back:91,legs:62,shoulders:84,arms:70,core:55};
+
+function calcScore({workouts,streak,volume,calDays,prs}){
+return Math.min(100,Math.round(
+Math.min(workouts*4.2,40)+Math.min(streak*1.5,20)+Math.min((volume/1000)*0.8,25)+Math.min(calDays*1.25,10)+Math.min(prs*1.25,5)
+));
+}
+
+// ── SHARED COMPONENTS ─────────────────────────────────────────────────────────
+function BB({children,style={}}){
+return <span style={{fontFamily:”‘Bebas Neue’,sans-serif”,letterSpacing:2,…style}}>{children}</span>;
+}
+function BC({children,style={}}){
+return <span style={{fontFamily:”‘Barlow Condensed’,sans-serif”,fontWeight:700,…style}}>{children}</span>;
+}
+function SectionHead({sub,title}){
+return(
+<div style={{marginBottom:22,animation:“fadeUp .3s ease”}}>
+<BC style={{fontSize:11,color:G.lime,letterSpacing:4,display:“block”,marginBottom:4}}>{sub}</BC>
+<BB style={{fontSize:36,lineHeight:1,display:“block”}}>{title}</BB>
+</div>
+);
+}
+function Card({children,style={},className=””}){
+return <div className={className} style={{background:G.card,border:`1px solid ${G.border}`,borderRadius:14,…style}}>{children}</div>;
+}
+function ProgressBar({val,max,color=G.lime,height=8,style={}}){
+const pct=Math.min((val/max)*100,100);
+return(
+<div style={{height,background:G.border,borderRadius:height,overflow:“hidden”,…style}}>
+<div style={{width:`${pct}%`,height:“100%”,background:color,borderRadius:height,transition:“width 1s ease”}}/>
+</div>
+);
+}
+function ScoreRing({score,size=150}){
+const stroke=9,r=(size-stroke)/2,circ=2*Math.PI*r,dash=(score/100)*circ;
+const col=score>=85?G.lime:score>=70?”#88ff00”:score>=50?G.gold:G.grey;
+const lbl=score>=85?“ELITE”:score>=70?“BEAST”:score>=50?“GRINDER”:“RISING”;
+return(
+<div style={{position:“relative”,display:“inline-flex”,alignItems:“center”,justifyContent:“center”}}>
+<svg width={size} height={size} style={{transform:“rotate(-90deg)”}}>
+<circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#1e1e1e" strokeWidth={stroke}/>
+<circle cx={size/2} cy={size/2} r={r} fill=“none” stroke={col} strokeWidth={stroke}
+strokeDasharray={`${dash} ${circ-dash}`} strokeLinecap=“round”
+style={{filter:`drop-shadow(0 0 6px ${col}99)`,transition:“stroke-dasharray 1.4s ease”}}/>
+</svg>
+<div style={{position:“absolute”,textAlign:“center”}}>
+<BB style={{fontSize:size*.28,color:col,display:“block”,lineHeight:1,animation:“scalePop .7s ease”}}>{score}</BB>
+<BC style={{fontSize:size*.085,color:G.grey,letterSpacing:2,display:“block”}}>GFDT SCORE</BC>
+<BB style={{fontSize:size*.11,color:col,display:“block”,letterSpacing:2,marginTop:2}}>{lbl}</BB>
+</div>
+</div>
+);
+}
+function RankBadge({rank}){
+if(rank===1) return <div style={{width:36,height:36,borderRadius:10,background:“linear-gradient(135deg,#8B6914,#ffd000)”,display:“flex”,alignItems:“center”,justifyContent:“center”,flexShrink:0}}>{I.crown(”#080808”,18)}</div>;
+if(rank===2) return <div style={{width:36,height:36,borderRadius:10,background:“linear-gradient(135deg,#555,#bbb)”,display:“flex”,alignItems:“center”,justifyContent:“center”,flexShrink:0}}>{I.medal(”#080808”,18)}</div>;
+if(rank===3) return <div style={{width:36,height:36,borderRadius:10,background:“linear-gradient(135deg,#7a3a00,#cd7f32)”,display:“flex”,alignItems:“center”,justifyContent:“center”,flexShrink:0}}>{I.trophy(”#fff”,16)}</div>;
+return <div style={{width:36,height:36,borderRadius:10,background:G.border,display:“flex”,alignItems:“center”,justifyContent:“center”,fontFamily:”‘Bebas Neue’”,fontSize:15,color:G.greyL,flexShrink:0}}>{rank}</div>;
+}
+function Avatar({name,size=36,isMe=false}){
+const initials=name.split(” “).map(w=>w[0]).join(””).slice(0,2).toUpperCase();
+return(
+<div style={{width:size,height:size,borderRadius:size*.28,background:isMe?G.lime:G.greyD,border:`1px solid ${isMe?G.lime:G.border}`,display:“flex”,alignItems:“center”,justifyContent:“center”,flexShrink:0,boxShadow:isMe?`0 0 8px ${G.limeGlow}`:””}}>
+<BB style={{fontSize:size*.38,color:isMe?”#080808”:G.greyL,letterSpacing:1,lineHeight:1}}>{initials}</BB>
+</div>
+);
+}
+function BarChart({labels,values,color=G.lime,height=100,unit=””,formatVal}){
+const max=Math.max(…values);
+const fmt=formatVal||(v=>v>=1000000?(v/1000000).toFixed(1)+“M”:v>=1000?(v/1000).toFixed(0)+“k”:v);
+return(
+<div style={{display:“flex”,alignItems:“flex-end”,gap:6,height,paddingTop:20}}>
+{values.map((v,i)=>{
+const h=Math.max((v/max)*(height-20),4);
+const isHi=i===values.length-1;
+return(
+<div key={i} style={{flex:1,display:“flex”,flexDirection:“column”,alignItems:“center”,gap:4}}>
+{isHi&&<BC style={{fontSize:10,color:G.lime,whiteSpace:“nowrap”}}>{fmt(v)}{unit}</BC>}
+<div style={{width:“100%”,height:h,background:isHi?`linear-gradient(180deg,${G.lime},${G.limeD})`:G.greyD,borderRadius:“4px 4px 0 0”,transition:“height 1s ease”,boxShadow:isHi?`0 0 10px ${G.limeGlow}`:“none”}}/>
+<BC style={{fontSize:9,color:G.grey,letterSpacing:.5}}>{labels[i]}</BC>
+</div>
+);
+})}
+</div>
+);
+}
+function DualBar({labels,consumed,burned,height=110}){
+const max=Math.max(…consumed,…burned);
+const fmtV=v=>v>=1000000?(v/1000000).toFixed(1)+“M”:v>=1000?(v/1000).toFixed(0)+“k”:String(v);
+const last=consumed.length-1;
+return(
+<div>
+<div style={{display:“flex”,gap:16,marginBottom:10}}>
+<div style={{display:“flex”,alignItems:“center”,gap:6}}><div style={{width:10,height:10,borderRadius:2,background:G.lime}}/><BC style={{fontSize:11,color:G.greyL}}>CONSUMED</BC></div>
+<div style={{display:“flex”,alignItems:“center”,gap:6}}><div style={{width:10,height:10,borderRadius:2,background:G.orange}}/><BC style={{fontSize:11,color:G.greyL}}>BURNED</BC></div>
+</div>
+<div style={{display:“flex”,alignItems:“flex-end”,gap:4,height}}>
+{consumed.map((c,i)=>{
+const cH=Math.max((c/max)*(height-24),4),bH=Math.max((burned[i]/max)*(height-24),4),isLast=i===last;
+return(
+<div key={i} style={{flex:1,display:“flex”,flexDirection:“column”,alignItems:“center”,gap:3}}>
+{isLast&&<BC style={{fontSize:9,color:G.lime}}>{fmtV(c)}</BC>}
+<div style={{width:“100%”,display:“flex”,gap:2,alignItems:“flex-end”,height:height-24}}>
+<div style={{flex:1,height:cH,background:isLast?G.lime:G.greyD,borderRadius:“3px 3px 0 0”,transition:“height 1s ease”}}/>
+<div style={{flex:1,height:bH,background:isLast?G.orange:”#3a2800”,borderRadius:“3px 3px 0 0”,transition:“height 1s ease”}}/>
+</div>
+<BC style={{fontSize:9,color:G.grey,letterSpacing:.5}}>{labels[i]}</BC>
+</div>
+);
+})}
+</div>
+</div>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+function Dashboard({user,go}){
+const QUOTES=[“Pain is temporary. Glory is forever.”,“The iron never lies.”,“Every rep is a vote for who you’re becoming.”,“Champions train when nobody’s watching.”,“Get comfortable being uncomfortable.”];
+const q=QUOTES[new Date().getDay()%QUOTES.length];
+const days=[“M”,“T”,“W”,“T”,“F”,“S”,“S”];
+const doneDays=[0,1,3,4];
+const today=new Date().getDay()===0?6:new Date().getDay()-1;
+
+const pills=[
+{icon:I.barbell2(G.lime,20),  label:“Sessions/Month”,  val:user.monthlyWorkouts,        color:G.lime},
+{icon:I.flame(G.orange,20),   label:“Cal Burned Today”, val:user.bmrBurn, unit:“kcal”,  color:G.orange},
+{icon:I.walk(G.blue,20),      label:“Steps Today”,      val:“10.1k”,                    color:G.blue},
+{icon:I.bolt(G.lime,18),      label:“GFDT Score”,       val:user.score,                 color:G.lime},
+];
+
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="WELCOME BACK" title={user.name.toUpperCase()}/>
+
+```
+  {/* Streak banner */}
+  <div style={{background:"linear-gradient(130deg,#0d1f00,#1a3300)",border:`1px solid ${G.lime}44`,borderRadius:14,padding:"20px 22px",marginBottom:22,animation:"fadeUp .35s ease"}}>
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+      {I.flame(G.lime,18)}
+      <BB style={{fontSize:20,letterSpacing:2,color:G.lime}}>{user.streak}-DAY STREAK — KEEP GRINDING</BB>
+    </div>
+    <div style={{fontSize:13,color:G.greyL,fontStyle:"italic",marginBottom:14}}>"{q}"</div>
+    <button className="btn-lime" onClick={()=>go("workout")} style={{padding:"10px 22px",fontSize:13,display:"inline-flex",alignItems:"center",gap:8}}>
+      {I.dumbbell("#080808",16)} LAUNCH WORKOUT
+    </button>
+  </div>
+
+  {/* Stat pills */}
+  <div style={{display:"flex",gap:10,marginBottom:18,flexWrap:"wrap"}}>
+    {pills.map((s,i)=>(
+      <div key={i} style={{background:G.card,border:`1px solid ${G.border}`,borderRadius:12,padding:"16px 18px",flex:1,minWidth:130,animation:`fadeUp .4s ease ${i*50}ms both`}}>
+        <div style={{marginBottom:6}}>{s.icon}</div>
+        <BB style={{fontSize:30,color:s.color,display:"block",lineHeight:1}}>{s.val}<span style={{fontSize:14,color:G.grey,marginLeft:3,fontFamily:"'Barlow'",fontWeight:400}}>{s.unit||""}</span></BB>
+        <BC style={{fontSize:11,color:G.grey,letterSpacing:1,display:"block",marginTop:4,textTransform:"uppercase"}}>{s.label}</BC>
+      </div>
+    ))}
+  </div>
+
+  {/* Today at a glance */}
+  <Card style={{padding:"18px 20px",marginBottom:16,animation:"fadeUp .4s ease"}}>
+    <BC style={{fontSize:14,letterSpacing:2,color:G.greyL,display:"block",marginBottom:14,textTransform:"uppercase"}}>Today at a Glance</BC>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+      {[
+        {label:"Calories In",val:2200,  goal:GOALS.calDay,   unit:"kcal",color:G.lime},
+        {label:"Steps",      val:10100, goal:GOALS.stepsDay, unit:"",    color:G.blue},
+        {label:"Miles",      val:4.4,   goal:GOALS.milesDay, unit:"mi",  color:G.orange},
+      ].map((s,i)=>(
+        <div key={i}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+            <BC style={{fontSize:11,color:s.color,letterSpacing:1}}>{s.label}</BC>
+            <BC style={{fontSize:11,color:G.grey}}>{s.val>=1000?(s.val/1000).toFixed(1)+"k":s.val}{s.unit}</BC>
+          </div>
+          <ProgressBar val={s.val} max={s.goal} color={s.color} height={6}/>
+          <BC style={{fontSize:10,color:G.grey,marginTop:3,display:"block"}}>{Math.round((s.val/s.goal)*100)}% of goal</BC>
+        </div>
+      ))}
+    </div>
+  </Card>
+
+  {/* Week tracker */}
+  <Card style={{padding:"18px 20px",marginBottom:16,animation:"fadeUp .45s ease"}}>
+    <BC style={{fontSize:14,letterSpacing:2,color:G.greyL,display:"block",marginBottom:12,textTransform:"uppercase"}}>This Week</BC>
+    <div style={{display:"flex",gap:6}}>
+      {days.map((d,i)=>(
+        <div key={i} style={{flex:1,textAlign:"center"}}>
+          <BC style={{fontSize:10,color:G.grey,display:"block",marginBottom:5}}>{d}</BC>
+          <div style={{aspectRatio:"1",borderRadius:8,background:doneDays.includes(i)?G.lime:i===today?G.border:"#0c0c0c",border:`1px solid ${i===today?G.lime:G.border}`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:doneDays.includes(i)||i===today?`0 0 8px ${G.limeGlow}`:"none"}}>
+            {doneDays.includes(i)
+              ? <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>{I.check("#080808",13)}</div>
+              : i===today ? <div style={{width:6,height:6,borderRadius:"50%",background:G.lime}}/> : null}
+          </div>
+        </div>
+      ))}
+    </div>
+  </Card>
+
+  {/* Mini leaderboard */}
+  <Card className="card-h" style={{padding:"18px 20px",animation:"fadeUp .5s ease"}} onClick={()=>go("leaderboard")}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>{I.podium(G.lime,16)}<BC style={{fontSize:14,letterSpacing:2,color:G.greyL,textTransform:"uppercase"}}>Friend Leaderboard</BC></div>
+      <BC style={{fontSize:12,color:G.lime}}>VIEW ALL →</BC>
+    </div>
+    {FRIENDS.slice(0,3).map((f,i)=>(
+      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<2?`1px solid ${G.border}`:"none"}}>
+        <RankBadge rank={f.rank}/>
+        <Avatar name={f.name} size={32} isMe={f.isMe}/>
+        <span style={{flex:1,fontFamily:"'Barlow Condensed'",fontWeight:700,fontSize:15,color:f.isMe?G.lime:G.white}}>{f.name}{f.isMe?" (You)":""}</span>
+        <BB style={{fontSize:22,color:f.isMe?G.lime:G.greyL}}>{f.score}</BB>
+      </div>
+    ))}
+  </Card>
+</div>
+```
+
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: WORKOUT
+// ─────────────────────────────────────────────────────────────────────────────
+function WorkoutPage({user}){
+const exercises=[
+{name:“Barbell Bench Press”,sets:4,reps:“6-8”, rest:90,equip:“Barbell”,  muscle:“Chest”,       videoId:“SCVCLChPQFY”,tips:“Keep shoulder blades pinched, feet flat on floor. Bar touches mid-chest. Control the descent for 2-3 seconds.”},
+{name:“Incline DB Press”,   sets:3,reps:“8-10”,rest:75,equip:“Dumbbells”,muscle:“Upper Chest”,  videoId:“8iPEnn-ltC8”,tips:“Set bench to 30-45 degrees. Keep elbows at 45 degrees from torso. Full stretch at bottom, hard squeeze at top.”},
+{name:“Overhead Press”,     sets:4,reps:“6-8”, rest:90,equip:“Barbell”,  muscle:“Shoulders”,   videoId:“2yjwXTZQDDI”,tips:“Brace your core, glutes tight. Bar travels in a straight line — tuck chin as it passes. Lock out fully overhead.”},
+{name:“Lateral Raises”,     sets:4,reps:“12-15”,rest:60,equip:“Dumbbells”,muscle:“Side Delts”, videoId:“3VcKaXpzqRo”,tips:“Lead with your elbows, not your hands. Stop at shoulder height. Slight forward lean for better side delt activation.”},
+{name:“Skull Crushers”,     sets:3,reps:“8-10”,rest:60,equip:“Barbell”,  muscle:“Triceps”,     videoId:“d_KZxkY_0cM”,tips:“Keep elbows tucked and stationary. Lower bar to forehead slowly. Fully extend arms at top for max contraction.”},
+{name:“Tricep Pushdown”,    sets:3,reps:“12-15”,rest:45,equip:“Cable”,   muscle:“Triceps”,     videoId:“2-LAMcpzODU”,tips:“Stand tall, elbows locked to sides. Push straight down and fully extend. Squeeze hard at the bottom for 1 second.”},
+];
+const [activeEx,setActiveEx]=useState(null);
+const [done,setDone]=useState({});
+const [timer,setTimer]=useState(0);
+const [tActive,setTActive]=useState(false);
+const [vidEx,setVidEx]=useState(null);
+const tRef=useRef(null);
+
+useEffect(()=>{
+if(tActive&&timer>0){tRef.current=setTimeout(()=>setTimer(t=>t-1),1000);}
+else if(timer===0)setTActive(false);
+return()=>clearTimeout(tRef.current);
+},[tActive,timer]);
+
+const toggleSet=(name,idx)=>{
+const k=`${name}-${idx}`;
+setDone(p=>({…p,[k]:!p[k]}));
+if(!done[k]){const ex=exercises.find(e=>e.name===name);if(ex){setTimer(ex.rest);setTActive(true);}}
+};
+
+const total=exercises.reduce((a,e)=>a+e.sets,0);
+const doneN=Object.values(done).filter(Boolean).length;
+const pct=Math.round((doneN/total)*100);
+const r=32,circ=2*Math.PI*r,dash=(pct/100)*circ;
+
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="TODAY'S SESSION" title="PUSH DAY — CHEST & ARMS"/>
+<div style={{color:G.grey,fontSize:13,marginTop:-14,marginBottom:20}}>Dynamically adjusted · Week {user.currentWeek}</div>
+
+```
+  <div style={{display:"flex",gap:14,marginBottom:22,flexWrap:"wrap"}}>
+    {/* Progress ring */}
+    <Card style={{padding:"18px 22px",flex:1,display:"flex",alignItems:"center",gap:18,animation:"fadeUp .35s ease"}}>
+      <div style={{position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+        <svg width={74} height={74} style={{transform:"rotate(-90deg)"}}>
+          <circle cx={37} cy={37} r={r} fill="none" stroke={G.border} strokeWidth={7}/>
+          <circle cx={37} cy={37} r={r} fill="none" stroke={G.lime} strokeWidth={7}
+            strokeDasharray={`${dash} ${circ-dash}`} strokeLinecap="round"
+            style={{filter:`drop-shadow(0 0 6px ${G.limeGlow})`,transition:"stroke-dasharray 1s ease"}}/>
+        </svg>
+        <BB style={{position:"absolute",fontSize:19,color:G.lime}}>{pct}%</BB>
+      </div>
+      <div>
+        <BB style={{fontSize:26,display:"block"}}>{doneN} / {total} SETS</BB>
+        <BC style={{fontSize:12,color:G.grey}}>Session progress</BC>
+        {doneN===total&&doneN>0&&(
+          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:6}}>
+            {I.trophy(G.gold,14)}<BC style={{fontSize:13,color:G.lime}}>COMPLETE! +{Math.round(doneN*.8)} PTS</BC>
+          </div>
+        )}
+      </div>
+    </Card>
+    {/* Timer */}
+    <Card style={{padding:"18px 22px",minWidth:150,border:`1px solid ${tActive?G.lime:G.border}`,background:tActive?"#0d1f00":G.card,transition:"all .3s",animation:"fadeUp .4s ease"}}>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+        {I.timer(tActive?G.lime:G.grey,14)}
+        <BC style={{fontSize:11,color:tActive?G.lime:G.grey,letterSpacing:2}}>REST TIMER</BC>
+      </div>
+      <BB style={{fontSize:42,color:tActive?G.lime:G.greyD,letterSpacing:3,display:"block",lineHeight:1,filter:tActive?`drop-shadow(0 0 8px ${G.limeGlow})`:"none"}}>
+        {String(Math.floor(timer/60)).padStart(2,"0")}:{String(timer%60).padStart(2,"0")}
+      </BB>
+      {!tActive&&<button className="btn-ghost" onClick={()=>{setTimer(60);setTActive(true);}} style={{padding:"6px 14px",fontSize:12,marginTop:8}}>START 60s</button>}
+    </Card>
+  </div>
+
+  {/* Exercise list */}
+  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+    {exercises.map((ex,i)=>{
+      const isOpen=activeEx===i;
+      const exDone=Array.from({length:ex.sets},(_,s)=>done[`${ex.name}-${s}`]).filter(Boolean).length;
+      return(
+        <Card key={ex.name} style={{border:`1px solid ${isOpen?G.lime:G.border}`,overflow:"hidden",transition:"border-color .25s"}}>
+          <div style={{padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}} onClick={()=>setActiveEx(isOpen?null:i)}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:40,height:40,borderRadius:10,background:exDone===ex.sets?G.lime:G.border,display:"flex",alignItems:"center",justifyContent:"center",transition:"all .3s",flexShrink:0,boxShadow:exDone===ex.sets?`0 0 12px ${G.limeGlow}`:"none"}}>
+                {exDone===ex.sets ? I.check("#080808",18) : <BB style={{fontSize:14,color:G.greyL}}>{exDone}/{ex.sets}</BB>}
+              </div>
+              <div>
+                <BC style={{fontSize:16,display:"block"}}>{ex.name}</BC>
+                <span style={{color:G.grey,fontSize:12}}>{ex.sets} sets · {ex.reps} reps · {ex.rest}s rest · <span style={{color:G.greyL}}>{ex.muscle}</span></span>
+              </div>
+            </div>
+            {I.chevron(G.grey,18,isOpen?90:0)}
+          </div>
+
+          {isOpen&&(
+            <div style={{borderTop:`1px solid ${G.border}`}}>
+              {/* Thumbnail + tips */}
+              <div style={{padding:"14px 20px 0",display:"flex",gap:14,alignItems:"flex-start"}}>
+                <div onClick={e=>{e.stopPropagation();setVidEx(ex);}}
+                  style={{position:"relative",width:120,height:68,borderRadius:10,overflow:"hidden",flexShrink:0,cursor:"pointer",border:`2px solid ${G.lime}`,boxShadow:`0 0 12px ${G.limeGlow}`}}>
+                  <img src={`https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg`} alt={ex.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                  <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <div style={{width:30,height:30,borderRadius:"50%",background:G.lime,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 10px ${G.limeGlow}`}}>
+                      {I.play("#080808",12)}
+                    </div>
+                  </div>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>{I.target(G.lime,13)}<BC style={{fontSize:11,color:G.lime,letterSpacing:1}}>FORM TIPS</BC></div>
+                  <span style={{fontSize:12,color:G.greyL,lineHeight:1.55}}>{ex.tips}</span>
+                </div>
+              </div>
+              {/* Sets */}
+              <div style={{padding:"14px 20px 0"}}>
+                <BC style={{fontSize:11,color:G.grey,letterSpacing:1,display:"block",marginBottom:10}}>TAP SET TO MARK COMPLETE</BC>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  {Array.from({length:ex.sets},(_,s)=>{
+                    const sd=!!done[`${ex.name}-${s}`];
+                    return(
+                      <button key={s} onClick={e=>{e.stopPropagation();toggleSet(ex.name,s);}}
+                        style={{padding:"11px 16px",borderRadius:10,border:`2px solid ${sd?G.lime:G.border}`,background:sd?"#0d1f00":"transparent",color:sd?G.lime:G.grey,fontFamily:"'Barlow Condensed'",fontWeight:700,fontSize:14,cursor:"pointer",transition:"all .2s",minWidth:60,display:"flex",alignItems:"center",gap:6,boxShadow:sd?`0 0 8px ${G.limeGlow}`:"none"}}>
+                        SET {s+1}{sd&&I.check(G.lime,12)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Actions */}
+              <div style={{padding:"12px 20px 18px",display:"flex",gap:8}}>
+                <button className="btn-ghost" onClick={e=>{e.stopPropagation();setTimer(ex.rest);setTActive(true);}} style={{padding:"8px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6}}>
+                  {I.timer(G.greyL,14)}REST TIMER
+                </button>
+                <button className="btn-ghost" onClick={e=>e.stopPropagation()} style={{padding:"8px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6}}>
+                  {I.notepad(G.greyL,14)}LOG WEIGHT
+                </button>
+                <button className="btn-lime" onClick={e=>{e.stopPropagation();setVidEx(ex);}} style={{padding:"8px 14px",fontSize:12,marginLeft:"auto",display:"flex",alignItems:"center",gap:6}}>
+                  {I.video("#080808",14)}WATCH DEMO
+                </button>
+              </div>
+            </div>
+          )}
+        </Card>
+      );
+    })}
+  </div>
+
+  {/* Video Modal */}
+  {vidEx&&(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.93)",zIndex:300,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(8px)"}}
+      onClick={()=>setVidEx(null)}>
+      <div style={{width:"100%",maxWidth:680,animation:"fadeUp .3s ease"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+          <div>
+            <BC style={{fontSize:11,color:G.lime,letterSpacing:3,display:"block",marginBottom:3}}>EXERCISE DEMO</BC>
+            <BB style={{fontSize:26,display:"block",lineHeight:1}}>{vidEx.name.toUpperCase()}</BB>
+            <BC style={{fontSize:12,color:G.grey}}>{vidEx.muscle} · {vidEx.equip}</BC>
+          </div>
+          <button onClick={()=>setVidEx(null)} style={{background:"#1a1a1a",border:`1px solid ${G.border}`,borderRadius:8,width:36,height:36,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginLeft:16}}>
+            {I.close(G.greyL,16)}
+          </button>
+        </div>
+        <div style={{position:"relative",paddingBottom:"56.25%",borderRadius:14,overflow:"hidden",border:`2px solid ${G.lime}`,boxShadow:`0 0 30px ${G.limeGlow}`}}>
+          <iframe src={`https://www.youtube.com/embed/${vidEx.videoId}?autoplay=1&rel=0&modestbranding=1`}
+            title={vidEx.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}/>
+        </div>
+        <div style={{background:G.card,border:`1px solid ${G.border}`,borderRadius:12,padding:"14px 18px",marginTop:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>{I.target(G.lime,13)}<BC style={{fontSize:11,color:G.lime,letterSpacing:2}}>COACHING NOTES</BC></div>
+          <span style={{fontSize:13,color:G.greyL,lineHeight:1.6}}>{vidEx.tips}</span>
+        </div>
+        <div style={{display:"flex",gap:10,marginTop:12}}>
+          {[{l:"SETS",v:vidEx.sets},{l:"REPS",v:vidEx.reps},{l:"REST",v:vidEx.rest+"s"},{l:"EQUIP",v:vidEx.equip}].map((s,i)=>(
+            <div key={i} style={{flex:1,background:G.card,border:`1px solid ${G.border}`,borderRadius:10,padding:"10px",textAlign:"center"}}>
+              <BC style={{fontSize:10,color:G.grey,letterSpacing:1,display:"block"}}>{s.l}</BC>
+              <BB style={{fontSize:20,color:G.lime,display:"block"}}>{s.v}</BB>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: NUTRITION
+// ─────────────────────────────────────────────────────────────────────────────
+function NutritionPage({user}){
+const [calPeriod,setCalPeriod]=useState(“daily”);
+const [meals,setMeals]=useState([
+{id:1,time:“7:30 AM”,label:“Breakfast”,items:[FOOD_DB[2],FOOD_DB[3]]},
+{id:2,time:“12:00 PM”,label:“Lunch”,   items:[FOOD_DB[0],FOOD_DB[1],FOOD_DB[4]]},
+]);
+const [search,setSearch]=useState(””);
+const [addingTo,setAddingTo]=useState(null);
+const macroGoal={protein:180,carbs:250,fat:65};
+const todayTotals=meals.flatMap(m=>m.items).reduce((a,f)=>({cal:a.cal+f.cal,protein:a.protein+f.protein,carbs:a.carbs+f.carbs,fat:a.fat+f.fat}),{cal:0,protein:0,carbs:0,fat:0});
+const net=todayTotals.cal-420;
+const filtered=FOOD_DB.filter(f=>f.name.toLowerCase().includes(search.toLowerCase()));
+const periods=[{id:“daily”,label:“DAY”},{id:“weekly”,label:“WEEK”},{id:“monthly”,label:“MONTH”},{id:“yearly”,label:“YEAR”}];
+const pData=CAL_DATA[calPeriod];
+const latestIn=pData.consumed[pData.consumed.length-1];
+const latestOut=pData.burned[pData.burned.length-1];
+const latestNet=latestIn-latestOut;
+const fmt=v=>v>=1000000?(v/1000000).toFixed(1)+“M”:v>=1000?(v/1000).toFixed(1)+“k”:String(v);
+const MacroRow=({label,val,goal,color})=>(
+<div style={{marginBottom:13}}>
+<div style={{display:“flex”,justifyContent:“space-between”,marginBottom:5}}>
+<BC style={{fontSize:12,letterSpacing:1,textTransform:“uppercase”,color}}>{label}</BC>
+<BC style={{fontSize:12,color:G.greyL}}>{val}g <span style={{color:G.grey}}>/ {goal}g</span></BC>
+</div>
+<ProgressBar val={val} max={goal} color={color} height={7}/>
+</div>
+);
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="NUTRITION HQ" title="FUEL YOUR MACHINE"/>
+<div style={{display:“flex”,background:G.card,border:`1px solid ${G.border}`,borderRadius:10,overflow:“hidden”,marginBottom:18}}>
+{periods.map(p=>(
+<button key={p.id} className=“tab-pill” onClick={()=>setCalPeriod(p.id)}
+style={{flex:1,padding:“11px 4px”,background:calPeriod===p.id?G.lime:“transparent”,color:calPeriod===p.id?”#080808”:G.grey,fontSize:13,letterSpacing:1,boxShadow:calPeriod===p.id?`0 0 12px ${G.limeGlow}`:“none”}}>
+{p.label}
+</button>
+))}
+</div>
+<Card style={{padding:“20px 22px”,marginBottom:16,animation:“fadeUp .35s ease”}}>
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,display:“block”,marginBottom:14,textTransform:“uppercase”}}>
+{calPeriod===“daily”?“TODAY”:calPeriod===“weekly”?“THIS WEEK”:calPeriod===“monthly”?“THIS MONTH”:“THIS YEAR”} — CALORIES
+</BC>
+<div style={{display:“flex”,justifyContent:“space-around”,alignItems:“center”,flexWrap:“wrap”,gap:14,marginBottom:18}}>
+{[
+{label:“Consumed”,val:fmt(latestIn),  color:G.lime},
+{label:“Burned”,  val:fmt(latestOut), color:G.orange},
+{label:“Net”,     val:fmt(latestNet), color:latestNet<=user.calGoal?G.blue:G.red},
+{label:“Goal”,    val:fmt(user.calGoal),color:G.grey},
+].map((s,i)=>(
+<div key={i} style={{textAlign:“center”}}>
+<BB style={{fontSize:36,color:s.color,display:“block”,lineHeight:1}}>{s.val}</BB>
+<BC style={{fontSize:11,color:G.grey,letterSpacing:1}}>{s.label}</BC>
+</div>
+))}
+</div>
+<DualBar labels={pData.labels} consumed={pData.consumed} burned={pData.burned} height={110}/>
+</Card>
+{calPeriod===“daily”&&(
+<Card style={{padding:“18px 22px”,marginBottom:16,animation:“fadeUp .4s ease”}}>
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,display:“block”,marginBottom:14,textTransform:“uppercase”}}>Today’s Macros</BC>
+<MacroRow label="Protein" val={todayTotals.protein} goal={macroGoal.protein} color={G.lime}/>
+<MacroRow label="Carbs"   val={todayTotals.carbs}   goal={macroGoal.carbs}   color={G.orange}/>
+<MacroRow label="Fat"     val={todayTotals.fat}     goal={macroGoal.fat}     color={G.gold}/>
+<div style={{display:“flex”,justifyContent:“space-between”,marginTop:12,paddingTop:12,borderTop:`1px solid ${G.border}`}}>
+<div style={{display:“flex”,alignItems:“center”,gap:6}}>{I.flame(G.orange,16)}<BC style={{fontSize:12,color:G.grey}}>Net today</BC></div>
+<BB style={{fontSize:20,color:net<=user.calGoal?G.lime:G.red}}>{net} kcal</BB>
+</div>
+</Card>
+)}
+{calPeriod===“daily”&&(
+<>
+{meals.map(meal=>(
+<Card key={meal.id} style={{padding:“18px 22px”,marginBottom:14,animation:“fadeUp .45s ease”}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:12}}>
+<div>
+<BC style={{fontSize:17,display:“block”}}>{meal.label}</BC>
+<span style={{color:G.grey,fontSize:12}}>{meal.time}</span>
+</div>
+<button className=“btn-lime” onClick={()=>setAddingTo(meal.id)} style={{padding:“8px 14px”,fontSize:12,display:“inline-flex”,alignItems:“center”,gap:6}}>
+{I.plus(”#080808”,13)}ADD
+</button>
+</div>
+{meal.items.map((f,idx)=>(
+<div key={idx} style={{display:“flex”,justifyContent:“space-between”,padding:“9px 0”,borderBottom:`1px solid ${G.border}`}}>
+<span style={{fontSize:14}}>{f.name}</span>
+<BC style={{fontSize:12,color:G.grey}}>{f.cal} kcal · P:{f.protein}g</BC>
+</div>
+))}
+<div style={{display:“flex”,justifyContent:“flex-end”,alignItems:“center”,gap:6,marginTop:10}}>
+{I.calIcon(G.lime,14)}<BC style={{fontSize:14,color:G.lime}}>{meal.items.reduce((a,f)=>a+f.cal,0)} kcal</BC>
+</div>
+</Card>
+))}
+<button className=“btn-ghost” onClick={()=>setMeals(m=>[…m,{id:Date.now(),time:“Now”,label:`Meal ${m.length+1}`,items:[]}])}
+style={{width:“100%”,padding:“13px”,fontSize:13,marginBottom:24,display:“flex”,alignItems:“center”,justifyContent:“center”,gap:8}}>
+{I.plus(G.greyL,13)}ADD MEAL
+</button>
+</>
+)}
+{addingTo&&(
+<div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,.88)”,zIndex:200,display:“flex”,alignItems:“flex-end”}} onClick={()=>setAddingTo(null)}>
+<div style={{background:G.dark,borderRadius:“20px 20px 0 0”,padding:22,width:“100%”,maxHeight:“72vh”,overflow:“auto”}} onClick={e=>e.stopPropagation()}>
+<BB style={{fontSize:24,display:“block”,marginBottom:14}}>ADD FOOD</BB>
+<input value={search} onChange={e=>setSearch(e.target.value)} placeholder=“Search food…”
+style={{width:“100%”,padding:“12px 16px”,borderRadius:10,fontSize:15,marginBottom:14,display:“block”}}/>
+{filtered.map((f,i)=>(
+<div key={i} className=“card-h” onClick={()=>{setMeals(m=>m.map(ml=>ml.id===addingTo?{…ml,items:[…ml.items,f]}:ml));setAddingTo(null);setSearch(””);}}
+style={{background:G.card,border:`1px solid ${G.border}`,borderRadius:10,padding:“13px 16px”,marginBottom:8,display:“flex”,justifyContent:“space-between”}}>
+<BC style={{fontSize:15}}>{f.name}</BC>
+<BC style={{fontSize:13,color:G.grey}}>{f.cal} kcal</BC>
+</div>
+))}
+<button className=“btn-ghost” onClick={()=>setAddingTo(null)} style={{width:“100%”,padding:13,marginTop:8,fontSize:13}}>CANCEL</button>
+</div>
+</div>
+)}
+</div>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: ACTIVITY
+// ─────────────────────────────────────────────────────────────────────────────
+function ActivityPage(){
+const [period,setPeriod]=useState(“daily”);
+const [view,setView]=useState(“steps”);
+const periods=[{id:“daily”,label:“DAY”},{id:“weekly”,label:“WEEK”},{id:“monthly”,label:“MONTH”},{id:“yearly”,label:“YEAR”}];
+const pData=ACT_DATA[period];
+const values=view===“steps”?pData.steps:pData.miles;
+const latest=values[values.length-1];
+const total=values.reduce((a,v)=>a+v,0);
+const avg=Math.round((total/values.length)*10)/10;
+const stepGoal=period===“daily”?GOALS.stepsDay:period===“weekly”?GOALS.stepsDay*7:period===“monthly”?GOALS.stepsDay*30:GOALS.stepsDay*365;
+const mileGoal=period===“daily”?GOALS.milesDay:period===“weekly”?GOALS.milesDay*7:period===“monthly”?GOALS.milesDay*30:GOALS.milesDay*365;
+const goal=view===“steps”?stepGoal:mileGoal;
+const fmt=v=>v>=1000000?(v/1000000).toFixed(2)+“M”:v>=1000?(v/1000).toFixed(1)+“k”:typeof v===“number”&&v%1!==0?v.toFixed(1):String(v);
+const unit=view===“steps”?“steps”:“mi”;
+const periodLabel=period===“daily”?“Today”:period===“weekly”?“This Week”:period===“monthly”?“This Month”:“This Year”;
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="MOVEMENT TRACKER" title="STEPS & MILES"/>
+<div style={{display:“flex”,background:G.card,border:`1px solid ${G.border}`,borderRadius:10,overflow:“hidden”,marginBottom:14}}>
+{periods.map(p=>(
+<button key={p.id} className=“tab-pill” onClick={()=>setPeriod(p.id)}
+style={{flex:1,padding:“11px 4px”,background:period===p.id?G.lime:“transparent”,color:period===p.id?”#080808”:G.grey,fontSize:13,letterSpacing:1,boxShadow:period===p.id?`0 0 12px ${G.limeGlow}`:“none”}}>
+{p.label}
+</button>
+))}
+</div>
+<div style={{display:“flex”,gap:8,marginBottom:18}}>
+{[[“steps”,I.walk,“STEPS”],[“miles”,I.mapPin,“MILES”]].map(([id,ic,label])=>(
+<button key={id} className={view===id?“btn-lime”:“btn-ghost”} onClick={()=>setView(id)}
+style={{padding:“8px 20px”,fontSize:13,flex:1,display:“flex”,alignItems:“center”,justifyContent:“center”,gap:7}}>
+{ic(view===id?”#080808”:G.grey,15)}{label}
+</button>
+))}
+</div>
+<Card style={{padding:“22px”,marginBottom:16,animation:“fadeUp .35s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:16}}>
+{view===“steps”?I.walk(G.lime,16):I.mapPin(G.orange,16)}
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,textTransform:“uppercase”}}>{periodLabel} — {view.toUpperCase()}</BC>
+</div>
+<div style={{display:“flex”,gap:14,flexWrap:“wrap”,marginBottom:18}}>
+<div style={{flex:1,textAlign:“center”,background:G.card2,borderRadius:12,padding:“16px”}}>
+<BB style={{fontSize:42,color:G.lime,display:“block”,lineHeight:1}}>{fmt(latest)}</BB>
+<BC style={{fontSize:12,color:G.grey}}>{unit}</BC>
+<ProgressBar val={latest} max={goal} color={G.lime} height={6} style={{marginTop:8}}/>
+<BC style={{fontSize:11,color:G.grey,display:“block”,marginTop:4}}>{Math.round((latest/goal)*100)}% of goal</BC>
+</div>
+<div style={{display:“flex”,flexDirection:“column”,gap:10,flex:1}}>
+<div style={{background:G.card2,borderRadius:12,padding:“12px 16px”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:6,marginBottom:2}}>{I.calIcon(G.blue,13)}<BC style={{fontSize:11,color:G.grey,letterSpacing:1}}>PERIOD TOTAL</BC></div>
+<BB style={{fontSize:24,color:G.blue,display:“block”}}>{fmt(total)} <span style={{fontSize:14,fontFamily:”‘Barlow’”,color:G.grey}}>{unit}</span></BB>
+</div>
+<div style={{background:G.card2,borderRadius:12,padding:“12px 16px”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:6,marginBottom:2}}>{I.trendUp(G.orange,13)}<BC style={{fontSize:11,color:G.grey,letterSpacing:1}}>DAILY AVG</BC></div>
+<BB style={{fontSize:24,color:G.orange,display:“block”}}>{fmt(avg)} <span style={{fontSize:14,fontFamily:”‘Barlow’”,color:G.grey}}>{unit}</span></BB>
+</div>
+{view===“steps”&&(
+<div style={{background:G.card2,borderRadius:12,padding:“12px 16px”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:6,marginBottom:2}}>{I.flame(G.gold,13)}<BC style={{fontSize:11,color:G.grey,letterSpacing:1}}>CALS FROM STEPS</BC></div>
+<BB style={{fontSize:24,color:G.gold,display:“block”}}>{fmt(Math.round(latest*.04))} <span style={{fontSize:14,fontFamily:”‘Barlow’”,color:G.grey}}>kcal</span></BB>
+</div>
+)}
+</div>
+</div>
+<BarChart labels={pData.labels} values={values} color={G.lime} height={120} unit={view===“steps”?””:unit} formatVal={view===“steps”?v=>(v>=1000?(v/1000).toFixed(0)+“k”:v):v=>v.toFixed(1)}/>
+</Card>
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:14,marginBottom:16}}>
+<Card style={{padding:“18px”,animation:“fadeUp .4s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:8}}>{I.walk(G.lime,16)}<BC style={{fontSize:12,color:G.greyL,letterSpacing:1}}>{periodLabel.toUpperCase()}</BC></div>
+<BB style={{fontSize:30,color:G.lime,display:“block”}}>{fmt(pData.steps[pData.steps.length-1])}</BB>
+<BC style={{fontSize:11,color:G.grey,display:“block”,marginTop:2}}>steps · goal {fmt(stepGoal)}</BC>
+<ProgressBar val={pData.steps[pData.steps.length-1]} max={stepGoal} color={G.lime} height={5} style={{marginTop:8}}/>
+</Card>
+<Card style={{padding:“18px”,animation:“fadeUp .45s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:8}}>{I.mapPin(G.orange,16)}<BC style={{fontSize:12,color:G.greyL,letterSpacing:1}}>{periodLabel.toUpperCase()}</BC></div>
+<BB style={{fontSize:30,color:G.orange,display:“block”}}>{pData.miles[pData.miles.length-1].toFixed(1)}</BB>
+<BC style={{fontSize:11,color:G.grey,display:“block”,marginTop:2}}>miles · goal {mileGoal}mi</BC>
+<ProgressBar val={pData.miles[pData.miles.length-1]} max={mileGoal} color={G.orange} height={5} style={{marginTop:8}}/>
+</Card>
+</div>
+<Card style={{padding:“18px 22px”,animation:“fadeUp .5s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:14}}>{I.medal(G.gold,16)}<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,textTransform:“uppercase”}}>Personal Bests</BC></div>
+{[
+{label:“Best Single Day (Steps)”,val:“14,300 steps”,date:“This Saturday”,color:G.lime},
+{label:“Best Single Day (Miles)”, val:“6.2 mi”,      date:“This Saturday”,color:G.orange},
+{label:“Best Week (Steps)”,       val:“71,000 steps”,date:“Week 2”,       color:G.blue},
+{label:“Best Week (Miles)”,       val:“31.0 mi”,     date:“Week 2”,       color:G.gold},
+].map((pb,i)=>(
+<div key={i} style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,padding:“10px 0”,borderBottom:i<3?`1px solid ${G.border}`:“none”}}>
+<div><BC style={{fontSize:14,display:“block”}}>{pb.label}</BC><BC style={{fontSize:11,color:G.grey}}>{pb.date}</BC></div>
+<BB style={{fontSize:22,color:pb.color}}>{pb.val}</BB>
+</div>
+))}
+</Card>
+</div>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: PROGRESS
+// ─────────────────────────────────────────────────────────────────────────────
+function ProgressPage({user}){
+const PRs=[
+{lift:“Bench Press”,weight:“225 lbs”,date:“Mar 10”},
+{lift:“Squat”,      weight:“315 lbs”,date:“Mar 14”},
+{lift:“Deadlift”,   weight:“405 lbs”,date:“Feb 28”},
+{lift:“OHP”,        weight:“155 lbs”,date:“Mar 17”},
+];
+const achievements=[
+{icon:I.flame(G.lime,22),       label:“7-Day Streak”, earned:true},
+{icon:I.sparkle(G.lime,22),     label:“First PR”,     earned:true},
+{icon:I.barbell2(G.lime,22),    label:“10 Workouts”,  earned:true},
+{icon:I.bolt(G.grey,20),        label:“30-Day Streak”,earned:false},
+{icon:I.trophy(G.grey,20),      label:“100 Workouts”, earned:false},
+{icon:I.shieldCheck(G.grey,22), label:“Elite Status”, earned:false},
+];
+const volumes=[18000,19200,20100,21500,22000,23100,24200,24800];
+const vLabels=[“W1”,“W2”,“W3”,“W4”,“W5”,“W6”,“W7”,“W8”];
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="TRACK YOUR GAINS" title="YOUR PROGRESS"/>
+<Card style={{display:“grid”,gridTemplateColumns:“auto 1fr”,gap:20,padding:“22px”,marginBottom:16,animation:“fadeUp .35s ease”,alignItems:“start”}}>
+<div style={{display:“flex”,flexDirection:“column”,alignItems:“center”,gap:8}}>
+<ScoreRing score={user.score} size={148}/>
+<BC style={{fontSize:10,color:G.grey,textAlign:“center”,letterSpacing:1,maxWidth:130}}>COMPOSITE FITNESS INDEX</BC>
+</div>
+<div>
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,display:“block”,marginBottom:14,textTransform:“uppercase”}}>Muscle Activation</BC>
+{MUSCLES.map(m=>{
+const v=MUSCLE_SCORES[m.id]||0;
+return(
+<div key={m.id} style={{marginBottom:10}}>
+<div style={{display:“flex”,justifyContent:“space-between”,marginBottom:4}}>
+<BC style={{fontSize:11,color:m.color,letterSpacing:1}}>{m.label}</BC>
+<BB style={{fontSize:16,color:m.color}}>{v}</BB>
+</div>
+<ProgressBar val={v} max={100} color={m.color} height={6}/>
+<BC style={{fontSize:10,color:G.grey,display:“block”,marginTop:2}}>{v>=80?“Peaked”:v>=60?“Strong”:v>=40?“Building”:“Needs Work”}</BC>
+</div>
+);
+})}
+</div>
+</Card>
+<Card style={{padding:“20px 22px”,marginBottom:16,animation:“fadeUp .4s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:16}}>{I.trendUp(G.lime,16)}<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,textTransform:“uppercase”}}>Weekly Volume (lbs)</BC></div>
+<BarChart labels={vLabels} values={volumes} color={G.lime} height={120} formatVal={v=>(v/1000).toFixed(0)+“k”}/>
+</Card>
+<Card style={{padding:“20px 22px”,marginBottom:16,animation:“fadeUp .45s ease”}}>
+<div style={{display:“flex”,alignItems:“center”,gap:8,marginBottom:14}}>{I.trophy(G.gold,16)}<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,textTransform:“uppercase”}}>Personal Records</BC></div>
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:10}}>
+{PRs.map((pr,i)=>(
+<div key={i} style={{background:G.card2,border:`1px solid ${G.border}`,borderRadius:10,padding:“14px”}}>
+<BC style={{fontSize:12,color:G.grey,display:“block”,marginBottom:4}}>{pr.lift}</BC>
+<BB style={{fontSize:26,color:G.lime,display:“block”}}>{pr.weight}</BB>
+<BC style={{fontSize:11,color:G.grey}}>{pr.date}</BC>
+</div>
+))}
+</div>
+</Card>
+<Card style={{padding:“20px 22px”,animation:“fadeUp .5s ease”}}>
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,display:“block”,marginBottom:14,textTransform:“uppercase”}}>Achievements</BC>
+<div style={{display:“grid”,gridTemplateColumns:“repeat(3,1fr)”,gap:10}}>
+{achievements.map((a,i)=>(
+<div key={i} style={{textAlign:“center”,padding:“14px 8px”,background:G.card2,borderRadius:10,border:`1px solid ${a.earned?G.lime:G.border}`,opacity:a.earned?1:.4,boxShadow:a.earned?`0 0 10px ${G.limeDim}`:“none”}}>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:8}}>{a.icon}</div>
+<BC style={{fontSize:11,color:a.earned?G.lime:G.grey}}>{a.label}</BC>
+</div>
+))}
+</div>
+</Card>
+</div>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: LEADERBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+function LeaderboardPage({user}){
+const [tab,setTab]=useState(“friends”);
+const [period,setPeriod]=useState(“weekly”);
+const data=tab===“friends”?FRIENDS:GLOBAL;
+const me=data.find(f=>f.isMe);
+const tc=t=>t===“Elite”?G.lime:t===“Pro”?G.orange:G.grey;
+const chEl=c=>{
+if(c>0) return <div style={{display:“flex”,alignItems:“center”,gap:2}}>{I.arrowUp(G.green,11)}<BC style={{fontSize:10,color:G.green}}>{c}</BC></div>;
+if(c<0) return <div style={{display:“flex”,alignItems:“center”,gap:2}}>{I.arrowDown(G.red,11)}<BC style={{fontSize:10,color:G.red}}>{Math.abs(c)}</BC></div>;
+return I.dash(G.grey,11);
+};
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="COMPETE & CONQUER" title="LEADERBOARD"/>
+{me&&(
+<div style={{background:“linear-gradient(135deg,#0a1500,#111f00)”,border:`2px solid ${G.lime}`,borderRadius:14,padding:“20px 22px”,marginBottom:22,display:“flex”,alignItems:“center”,gap:20,flexWrap:“wrap”,animation:“fadeUp .35s ease”,boxShadow:`0 0 20px ${G.limeDim}`}}>
+<ScoreRing score={me.score} size={108}/>
+<div style={{flex:1,minWidth:160}}>
+<BC style={{fontSize:11,color:G.lime,letterSpacing:3,display:“block”,marginBottom:4}}>YOUR STANDING</BC>
+<BB style={{fontSize:26,display:“block”,lineHeight:1}}>RANK #{me.rank} {tab===“global”?“GLOBALLY”:“AMONG FRIENDS”}</BB>
+<div style={{display:“flex”,alignItems:“center”,gap:10,marginTop:4}}>
+<div style={{display:“flex”,alignItems:“center”,gap:4}}>{I.flame(G.orange,13)}<BC style={{fontSize:12,color:G.grey}}>{me.streak}-day streak</BC></div>
+<div style={{display:“flex”,alignItems:“center”,gap:4}}>{I.dumbbell(G.greyL,13)}<BC style={{fontSize:12,color:G.grey}}>{me.workouts} sessions</BC></div>
+</div>
+<div style={{display:“flex”,gap:8,marginTop:10,flexWrap:“wrap”}}>
+<div style={{background:G.limeDim,border:`1px solid ${G.lime}33`,borderRadius:8,padding:“4px 10px”}}><BC style={{fontSize:12}}>GFDT: {me.score}</BC></div>
+<div style={{background:“rgba(255,208,0,.1)”,border:`1px solid ${G.gold}33`,borderRadius:8,padding:“4px 10px”}}><BC style={{fontSize:12,color:G.gold}}>{me.tier}</BC></div>
+</div>
+</div>
+</div>
+)}
+<div style={{display:“flex”,background:G.card,border:`1px solid ${G.border}`,borderRadius:10,overflow:“hidden”,marginBottom:12}}>
+{[{id:“friends”,l:“FRIENDS”},{id:“global”,l:“GLOBAL”}].map(t=>(
+<button key={t.id} className=“tab-pill” onClick={()=>setTab(t.id)}
+style={{flex:1,padding:“12px”,background:tab===t.id?G.lime:“transparent”,color:tab===t.id?”#080808”:G.grey,fontSize:13,letterSpacing:1}}>
+{t.l}
+</button>
+))}
+</div>
+<div style={{display:“flex”,gap:8,marginBottom:18}}>
+{[“weekly”,“monthly”,“all-time”].map(p=>(
+<button key={p} className=“btn-ghost” onClick={()=>setPeriod(p)}
+style={{flex:1,padding:“7px 4px”,fontSize:11,letterSpacing:1,borderColor:period===p?G.lime:G.border,color:period===p?G.lime:G.grey}}>
+{p.toUpperCase()}
+</button>
+))}
+</div>
+{tab===“friends”&&(
+<div style={{display:“flex”,alignItems:“flex-end”,gap:10,marginBottom:22,justifyContent:“center”,animation:“fadeUp .4s ease”}}>
+<div style={{textAlign:“center”,flex:1}}>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:6}}><Avatar name={FRIENDS[1].name} size={44}/></div>
+<div style={{background:G.card,border:“1px solid #555”,borderRadius:“12px 12px 0 0”,padding:“12px 8px”,height:90,display:“flex”,flexDirection:“column”,justifyContent:“flex-end”,alignItems:“center”}}>
+<BC style={{fontSize:13}}>{FRIENDS[1].name}</BC>
+<BB style={{fontSize:22,color:”#bbb”}}>{FRIENDS[1].score}</BB>
+<div style={{display:“flex”,alignItems:“center”,gap:4,marginTop:2}}>{I.medal(”#aaa”,14)}<BC style={{fontSize:10,color:”#aaa”}}>2nd</BC></div>
+</div>
+</div>
+<div style={{textAlign:“center”,flex:1}}>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:2,animation:“crownBob 2s ease infinite”}}>{I.crown(G.gold,24)}</div>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:4}}><Avatar name={FRIENDS[0].name} size={52} isMe={true}/></div>
+<div style={{background:“linear-gradient(180deg,#0d1f00,#060f00)”,border:`2px solid ${G.lime}`,borderRadius:“12px 12px 0 0”,padding:“14px 8px”,height:120,display:“flex”,flexDirection:“column”,justifyContent:“flex-end”,alignItems:“center”,boxShadow:`0 0 20px ${G.limeGlow}`}}>
+<BC style={{fontSize:14,color:G.lime}}>YOU</BC>
+<BB style={{fontSize:28,color:G.lime}}>{FRIENDS[0].score}</BB>
+<div style={{display:“flex”,alignItems:“center”,gap:4,marginTop:2}}>{I.crown(G.gold,14)}<BC style={{fontSize:10,color:G.gold}}>1st</BC></div>
+</div>
+</div>
+<div style={{textAlign:“center”,flex:1}}>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:6}}><Avatar name={FRIENDS[2].name} size={40}/></div>
+<div style={{background:G.card,border:“1px solid #7a3a00”,borderRadius:“12px 12px 0 0”,padding:“12px 8px”,height:70,display:“flex”,flexDirection:“column”,justifyContent:“flex-end”,alignItems:“center”}}>
+<BC style={{fontSize:13}}>{FRIENDS[2].name}</BC>
+<BB style={{fontSize:20,color:”#cd7f32”}}>{FRIENDS[2].score}</BB>
+<div style={{display:“flex”,alignItems:“center”,gap:4,marginTop:2}}>{I.trophy(”#cd7f32”,13)}<BC style={{fontSize:10,color:”#cd7f32”}}>3rd</BC></div>
+</div>
+</div>
+</div>
+)}
+<div style={{display:“flex”,flexDirection:“column”,gap:8,marginBottom:16}}>
+{data.map((f,i)=>(
+<div key={i} className=“lb-row” style={{background:f.isMe?“linear-gradient(90deg,rgba(170,255,0,.06),transparent)”:G.card,border:`1px solid ${f.isMe?G.lime:G.border}`,borderRadius:12,padding:“13px 16px”,display:“flex”,alignItems:“center”,gap:12,animation:`fadeUp ${.3+i*.04}s ease`,boxShadow:f.isMe?`0 0 12px ${G.limeDim}`:“none”}}>
+<RankBadge rank={f.rank}/>
+<Avatar name={f.name} size={36} isMe={f.isMe}/>
+<div style={{flex:1}}>
+<BC style={{fontSize:15,color:f.isMe?G.lime:G.white,display:“block”}}>{f.name}{f.isMe?” (You)”:””}</BC>
+<div style={{display:“flex”,gap:10,marginTop:2}}>
+<div style={{display:“flex”,alignItems:“center”,gap:4}}>{I.flame(G.orange,11)}<BC style={{fontSize:11,color:G.grey}}>{f.streak}d</BC></div>
+<div style={{display:“flex”,alignItems:“center”,gap:4}}>{I.dumbbell(G.greyL,11)}<BC style={{fontSize:11,color:G.grey}}>{f.workouts}x</BC></div>
+<BC style={{fontSize:11,color:tc(f.tier)}}>{f.tier}</BC>
+</div>
+</div>
+<div style={{textAlign:“right”}}>
+<BB style={{fontSize:26,color:f.isMe?G.lime:G.greyL,display:“block”,lineHeight:1}}>{f.score}</BB>
+{f.change!==undefined&&<div style={{marginTop:2}}>{chEl(f.change)}</div>}
+</div>
+</div>
+))}
+</div>
+<Card style={{padding:“18px 22px”,marginBottom:14,animation:“fadeUp .6s ease”}}>
+<BC style={{fontSize:13,color:G.greyL,letterSpacing:2,display:“block”,marginBottom:12,textTransform:“uppercase”}}>How GFDT Score is Calculated</BC>
+{[
+{icon:I.calIcon(G.lime,14),   l:“Consistency”,    pts:“40pts”,d:“Workouts this month”, color:G.lime},
+{icon:I.flame(G.orange,14),   l:“Streak Bonus”,   pts:“20pts”,d:“Active day streak”,   color:G.orange},
+{icon:I.dumbbell(G.gold,14),  l:“Strength Output”,pts:“25pts”,d:“Volume & PRs”,        color:G.gold},
+{icon:I.leaf(G.blue,14),      l:“Nutrition”,      pts:“10pts”,d:“Days on target”,      color:G.blue},
+{icon:I.medal(G.green,14),    l:“PRs Set”,        pts:“5pts”, d:“Records this month”,  color:G.green},
+].map((s,i)=>(
+<div key={i} style={{display:“flex”,alignItems:“center”,gap:10,padding:“8px 0”,borderBottom:i<4?`1px solid ${G.border}`:“none”}}>
+{s.icon}
+<div style={{flex:1}}><BC style={{fontSize:13}}>{s.l}</BC><BC style={{fontSize:11,color:G.grey,marginLeft:8}}>{s.d}</BC></div>
+<BB style={{fontSize:16,color:s.color}}>{s.pts}</BB>
+</div>
+))}
+</Card>
+<Card style={{padding:“18px 22px”,textAlign:“center”,animation:“fadeUp .65s ease”}}>
+<div style={{display:“flex”,justifyContent:“center”,marginBottom:10}}>{I.swords(G.lime,24)}</div>
+<BB style={{fontSize:22,letterSpacing:2,display:“block”,marginBottom:8}}>CHALLENGE YOUR CREW</BB>
+<BC style={{fontSize:13,color:G.grey,display:“block”,marginBottom:14}}>Top of the board at month-end gets bragging rights forever.</BC>
+<button className=“btn-lime” style={{padding:“12px 28px”,fontSize:14,display:“inline-flex”,alignItems:“center”,gap:8}}>
+{I.addUser(”#080808”,14)}INVITE FRIENDS
+</button>
+</Card>
+</div>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: COACHING — COMING SOON
+// ─────────────────────────────────────────────────────────────────────────────
+function CoachingPage(){
+const [notified,setNotified]=useState(false);
+const features=[
+{icon:I.person(G.lime,20),  title:“1-on-1 Virtual Coaching”,   desc:“Weekly video check-ins with an elite certified trainer tailored to your goals.”},
+{icon:I.trendUp(G.blue,20), title:“Custom Programming”,         desc:“Fully personalized workout plans built around your schedule, equipment and PRs.”},
+{icon:I.target(G.orange,20),title:“Real-Time Form Feedback”,    desc:“Submit video clips and get frame-by-frame breakdown from your coach within 24hrs.”},
+{icon:I.bolt(G.gold,20),    title:“Nutrition Strategy Sessions”,desc:“Monthly deep dives into your macro targets, meal timing and body composition goals.”},
+];
+return(
+<div style={{padding:“24px 18px”,maxWidth:800,margin:“0 auto”}}>
+<SectionHead sub="COMING SOON" title="VIRTUAL COACHING"/>
+
+```
+  {/* Hero lockup */}
+  <div style={{background:"linear-gradient(135deg,#0a0a0a,#0d1a00)",border:`1px solid ${G.lime}33`,borderRadius:16,padding:"36px 24px",marginBottom:22,textAlign:"center",position:"relative",overflow:"hidden",animation:"fadeUp .35s ease"}}>
+    {/* Background glow */}
+    <div style={{position:"absolute",inset:0,background:`radial-gradient(circle at 50% 60%, ${G.limeDim}, transparent 70%)`,pointerEvents:"none"}}/>
+
+    <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+      <div style={{width:80,height:80,borderRadius:20,background:"linear-gradient(135deg,#0d1f00,#1a3300)",border:`2px solid ${G.lime}`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 30px ${G.limeGlow}`}}>
+        {I.rocket(G.lime,36)}
+      </div>
+    </div>
+
+    <BB style={{fontSize:32,letterSpacing:3,display:"block",marginBottom:8}}>WE'RE BUILDING SOMETHING</BB>
+    <BB style={{fontSize:32,color:G.lime,letterSpacing:3,display:"block",marginBottom:16,textShadow:`0 0 20px ${G.limeGlow}`}}>ELITE.</BB>
+
+    <BC style={{fontSize:15,color:G.greyL,display:"block",maxWidth:460,margin:"0 auto",lineHeight:1.7,marginBottom:28}}>
+      Virtual coaching is in development. Get early access, priority matching with top trainers, and a founding member rate when we launch.
+    </BC>
+
+    {!notified ? (
+      <button className="btn-lime" onClick={()=>setNotified(true)} style={{padding:"14px 32px",fontSize:15,display:"inline-flex",alignItems:"center",gap:10}}>
+        {I.bell("#080808",18)}NOTIFY ME AT LAUNCH
+      </button>
+    ) : (
+      <div style={{display:"inline-flex",alignItems:"center",gap:10,background:"#0d1f00",border:`1px solid ${G.lime}`,borderRadius:10,padding:"12px 24px"}}>
+        {I.check(G.lime,18)}<BC style={{fontSize:15,color:G.lime}}>YOU'RE ON THE LIST</BC>
+      </div>
+    )}
+  </div>
+
+  {/* Feature preview cards */}
+  <BC style={{fontSize:11,color:G.greyL,letterSpacing:3,display:"block",marginBottom:14,textTransform:"uppercase"}}>What's Coming</BC>
+  <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:22}}>
+    {features.map((f,i)=>(
+      <Card key={i} style={{padding:"18px 20px",display:"flex",gap:16,alignItems:"flex-start",animation:`fadeUp ${.35+i*.08}s ease`,opacity:.75}}>
+        <div style={{width:44,height:44,borderRadius:12,background:G.card2,border:`1px solid ${G.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          {f.icon}
+        </div>
+        <div>
+          <BC style={{fontSize:16,display:"block",marginBottom:4}}>{f.title}</BC>
+          <span style={{fontSize:13,color:G.grey,lineHeight:1.55}}>{f.desc}</span>
+        </div>
+        <div style={{marginLeft:"auto",flexShrink:0,display:"flex",alignItems:"center"}}>
+          <div style={{background:G.greyD,borderRadius:6,padding:"4px 10px"}}>
+            <BC style={{fontSize:10,color:G.grey,letterSpacing:1}}>SOON</BC>
+          </div>
+        </div>
+      </Card>
+    ))}
+  </div>
+
+  {/* Under construction banner */}
+  <div style={{background:G.card2,border:`1px solid ${G.border}`,borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:14}}>
+    {I.wrench(G.grey,20)}
+    <div>
+      <BC style={{fontSize:13,display:"block",marginBottom:2}}>Estimated Launch — Q3 2026</BC>
+      <BC style={{fontSize:11,color:G.grey}}>Early access spots are limited. Founding members lock in 40% off forever.</BC>
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APP SHELL
+// ─────────────────────────────────────────────────────────────────────────────
+export default function App(){
+const [page,setPage]=useState(“dashboard”);
+const user={
+name:“Alex”,streak:12,tier:“Elite”,level:“intermediate”,
+currentWeek:5,monthlyWorkouts:18,calGoal:2400,bmrBurn:420,
+score:calcScore({workouts:18,streak:12,volume:24800,calDays:8,prs:4}),
+};
+
+const NAV=[
+{id:“dashboard”,   Icon:NavIcons.dashboard,   label:“Home”},
+{id:“workout”,     Icon:NavIcons.workout,     label:“Train”},
+{id:“nutrition”,   Icon:NavIcons.nutrition,   label:“Fuel”},
+{id:“activity”,    Icon:NavIcons.activity,    label:“Steps”},
+{id:“progress”,    Icon:NavIcons.progress,    label:“Stats”},
+{id:“leaderboard”, Icon:NavIcons.leaderboard, label:“Ranks”},
+{id:“coaching”,    Icon:NavIcons.coaching,    label:“Coach”},
+];
+
+const PAGES={dashboard:Dashboard,workout:WorkoutPage,nutrition:NutritionPage,activity:ActivityPage,progress:ProgressPage,leaderboard:LeaderboardPage,coaching:CoachingPage};
+const Page=PAGES[page];
+
+return(
+<div style={{background:G.black,minHeight:“100vh”,maxWidth:860,margin:“0 auto”}}>
+{/* Topbar */}
+<div style={{position:“sticky”,top:0,zIndex:50,background:“rgba(8,8,8,.96)”,backdropFilter:“blur(14px)”,borderBottom:`1px solid ${G.border}`,padding:“13px 18px”,display:“flex”,justifyContent:“space-between”,alignItems:“center”}}>
+<BB style={{fontSize:18,letterSpacing:4}}>
+GET FIT <span style={{color:G.lime,textShadow:`0 0 12px ${G.limeGlow}`}}>OR DIE</span> TRYING
+</BB>
+<div style={{display:“flex”,gap:8,alignItems:“center”}}>
+<div style={{background:”#0d1f00”,border:`1px solid ${G.lime}44`,borderRadius:20,padding:“4px 12px”,display:“flex”,alignItems:“center”,gap:5}}>
+{I.flame(G.lime,13)}<BC style={{fontSize:11,letterSpacing:1,color:G.lime}}>{user.streak}d STREAK</BC>
+</div>
+<div style={{background:”#0d1f00”,border:`1px solid ${G.lime}44`,borderRadius:20,padding:“4px 12px”,display:“flex”,alignItems:“center”,gap:5}}>
+{I.bolt(G.lime,13)}<BC style={{fontSize:11,letterSpacing:1,color:G.lime}}>{user.score} PTS</BC>
+</div>
+</div>
+</div>
+
+```
+  <div style={{paddingBottom:110}}>
+    <Page user={user} go={setPage} onNavigate={setPage}/>
+  </div>
+
+  {/* Bottom nav */}
+  <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:860,background:"rgba(8,8,8,.97)",backdropFilter:"blur(16px)",borderTop:`1px solid ${G.border}`,display:"flex",justifyContent:"space-around",padding:"9px 0 16px"}}>
+    {NAV.map(n=>{
+      const active=page===n.id;
+      const col=active?G.lime:G.grey;
+      return(
+        <button key={n.id} className="nav-btn" onClick={()=>setPage(n.id)}
+          style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,color:col,flex:1,padding:"0 2px"}}>
+          <div style={{filter:active?`drop-shadow(0 0 6px ${G.lime})`:"none",transition:"filter .25s"}}>
+            <n.Icon color={col} size={21}/>
+          </div>
+          <BC style={{fontSize:9,letterSpacing:.5,textTransform:"uppercase",color:col,transition:"color .2s"}}>{n.label}</BC>
+          <div style={{width:16,height:2,borderRadius:2,background:active?G.lime:"transparent",boxShadow:active?`0 0 6px ${G.limeGlow}`:"none",transition:"all .25s"}}/>
+        </button>
+      );
+    })}
+  </div>
+</div>
+```
+
+);
+}
