@@ -1,4 +1,4 @@
-import { useState } from ‘react’;
+import { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, StatusBar, TextInput, Switch } from ‘react-native’;
 
 const G = {
